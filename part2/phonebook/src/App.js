@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import axios from "axios"
 import personService from './services/persons'
 import Notification from "./components/Notification"
 
@@ -47,13 +46,17 @@ const EntryForm = (props) => {
   )
 }
 
-const DeleteButton = ({ target, persons, setPersons }) => {
+const DeleteButton = ({ target, persons, setPersons, setShown, shown }) => {
   const onDeletePress = (event) => {
     event.preventDefault()
     if (window.confirm(`do you truly want to delte ${target.name}`)) {
-      axios
-        .delete(`http://localhost:3001/persons/${target.id}`)
-        .then(setPersons(persons.filter(person => person !== target)))
+      console.log(target)
+      personService
+        .del(target.id)
+        .then(response => {
+          setPersons(persons.filter(person => person !== target))
+          setShown(shown.filter(person => person !== target))
+        })
     }
   } 
   return (
@@ -65,6 +68,14 @@ const DeleteButton = ({ target, persons, setPersons }) => {
 const App = () => {
 
   const [ persons, setPersons ] = useState([]) 
+  const [ newName, setNewName ] = useState("")
+  const [ newNumber, setNewNumber ] = useState("")
+  const [ filter, setFilter] = useState("")
+  const [ errorStatus, setErrorStatus ] = useState(false)
+  const [ notification, setNotification ] = useState(null)
+  const [ shown, setShown ] = useState([])
+  const [ deleted, setDeleted ] = useState(false)
+
   useEffect(() => {
     console.log("effect")
     personService
@@ -72,22 +83,17 @@ const App = () => {
       .then(response => {
         console.log("promise fulfilled")
         setPersons(response.data)
+        setShown(response.data)
       })
   }, [])
   console.log('render', persons.length, 'persons')
-
-  const [ newName, setNewName ] = useState("")
-  const [ newNumber, setNewNumber ] = useState("")
-  const [ filter, setFilter] = useState("")
-  const [ errorStatus, setErrorStatus ] = useState(false)
-  const [ notification, setNotification ] = useState(null)
+  console.log(persons)
 
   const addEntry = (event) => {
     event.preventDefault()
     const personObject = {
       name: newName,
-      number: newNumber,
-      shown: true
+      number: newNumber
     }
 
     for (let person of persons) {
@@ -99,6 +105,8 @@ const App = () => {
               console.log("updating")
               console.log(response.data)
               setPersons(persons.map(p => p.name === response.data.name ? response.data : p))
+              setShown(shown.map(p => p.name === response.data.name ? response.data : p))
+      
               console.log(persons)
             })
             .then(response => {
@@ -112,19 +120,29 @@ const App = () => {
             .catch(error => {
               setErrorStatus(true)
               setNotification(`Info of ${person.name} already deleted sorry chummo`)
-              setPersons(persons.filter(p => p !== person))
+              setPersons(persons.filter(p => p.name !== person.name))
+              if (person.name.toLocaleLowerCase().includes(filter.toLocaleLowerCase())) {
+                setShown(shown.filter(p => p.name !== person.name))
+              }
+              this.forceUpdate()
+              setDeleted(true)
               setTimeout(() => {
                 setNotification(null)
               }, 5000)
+              return
             })
         }
         return
       }
     }
+    if (!deleted) {
     personService
       .create(personObject)
       .then(response => {
         setPersons(persons.concat(response.data)) 
+        if (personObject.name.toLocaleLowerCase().includes(filter.toLocaleLowerCase())) {
+          setShown(shown.concat(personObject))
+        }
         setNewName("") 
         setNewNumber("")
       })
@@ -135,10 +153,22 @@ const App = () => {
           setNotification(null)
         }, 3000)
         })
-    setPersons(persons.concat(personObject))
+      .catch(error => {
+        console.log(error.response.data)
+        setErrorStatus(true)
+        setNotification(error.response.data.error)  
+        setTimeout(() => {
+          setNotification(null)
+        }, 3000)
+        })           
+    if (personObject.name.length > 3 && personObject.number.length > 8) {
+      setPersons(persons.concat(personObject))
+    }
     setNewName("")
     setNewNumber("")
-
+  } else {
+    setDeleted(false)
+  }
   }
 
   const handleNameChagne = (event) => {
@@ -151,18 +181,12 @@ const App = () => {
 
   const handleFilterChange = (event) => {
     setFilter(event.target.value)
-    for (let person of persons) {
-      if (person.name.toLocaleLowerCase().includes(event.target.value.toLocaleLowerCase())) {
-        person.shown = true
-      } else {
-        person.shown = false
-      }
-    }
+    setShown(persons.filter(person => 
+      person.name.toLocaleLowerCase().includes(event.target.value.toLocaleLowerCase())
+    ))
   }
 
-  const entriesToShow = persons.filter(person => person.shown)
-
-  console.log(entriesToShow.map(person => person.id))
+  console.log(persons)
   return (
     <div>
       <h2>Phonebook</h2>
@@ -172,10 +196,13 @@ const App = () => {
       <EntryForm handleNameChagne={handleNameChagne} handleNumberChange={handleNumberChange} newName={newName} addEntry={addEntry} newNumber={newNumber}/>
       <h2>Numbers</h2>
         {
-          entriesToShow.map(person => ([
+          shown ? 
+          shown.map(person => ([
             <Person key={person.name} person={person} />,
-            <DeleteButton key={`del ${person.name}`} target={person} setPersons={setPersons} persons={persons} />
+            <DeleteButton key={`del ${person.name}`} target={person} setPersons={setPersons} persons={persons} setShown={setShown} shown={shown} />
           ]))
+          :
+          (<div></div>)
         }
     </div>
   )
