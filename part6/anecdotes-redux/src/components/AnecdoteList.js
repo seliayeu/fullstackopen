@@ -2,25 +2,30 @@ import React, { useEffect } from 'react'
 import Notification from '../components/Notification'
 import { addVote, initializeAnecdotes } from '../reducers/anecdoteReducer'
 import { setNotification } from '../reducers/notificationReducer'
-import { useSelector, useDispatch } from 'react-redux'
+import { connect } from 'react-redux'
 
-const AnecdoteList = () => {
-  const anecdotes = useSelector(state => state.anecdote)
-  const filterString = useSelector(state => state.filter)
-  const dispatch = useDispatch()
+const AnecdoteList = (props) => {
+  const anecdotes = props.anecdotes
+  const filterString = props.filterString
+  let filtered;
   useEffect(() => {
-    dispatch(initializeAnecdotes())
-  }, [dispatch])
+    props.initializeAnecdotes()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps  
+
 
   const vote = (anecdote) => {
     console.log('vote', anecdote)
-    dispatch(addVote(anecdote))
-    dispatch(setNotification('vote successfully added', 3))
+    props.addVote(anecdote)
+    props.setNotification('vote successfully added', 3)
   }
 
   const listAnecdotes = () => {
     anecdotes.sort((a, b) => b.votes - a.votes)
-    const filtered = anecdotes.filter((anecdote) => anecdote.content.includes(filterString))
+    if (filterString !== undefined) {
+      filtered = anecdotes.filter((anecdote) => anecdote.content.includes(filterString))
+    } else {
+      filtered = anecdotes
+    }
     return(
       filtered.map(anecdote =>
       <div key={anecdote.id}>
@@ -42,4 +47,23 @@ const AnecdoteList = () => {
   )
 }
 
-export default AnecdoteList
+const mapStateToProps = (state) => {
+  console.log(state)
+  return {
+  anecdotes: state.anecdote,
+  filterString: state.filter,
+  }
+}
+
+const mapDispatchToProps = {
+  addVote,
+  initializeAnecdotes, 
+  setNotification,  
+}
+
+const ConnectedAnecdoteList = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(AnecdoteList)
+
+export default ConnectedAnecdoteList

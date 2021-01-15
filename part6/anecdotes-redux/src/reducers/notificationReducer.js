@@ -1,3 +1,5 @@
+let timeoutID = null
+
 const reducer = (state = null, action) => {
   switch (action.type) {
     case 'CHANGE':
@@ -15,7 +17,10 @@ export const setNotification = (message, secs) => {
       type: 'CHANGE',
       data: { content: message },
     })
-    setTimeout(() => {
+    
+    timeoutID !== null && clearTimeout(timeoutID)
+
+    timeoutID = setTimeout(() => {
       dispatch({ type: 'CLEAR' })
     }, secs * 1000)
   }
