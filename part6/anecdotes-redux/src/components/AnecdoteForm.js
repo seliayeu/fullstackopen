@@ -5,10 +5,10 @@ import { useDispatch } from 'react-redux'
 const AnecdoteForm = () => {
   const dispatch = useDispatch()
 
-  const addAnecdote = (event) => {
+  const addAnecdote = async (event) => {
     event.preventDefault()
     const content = event.target.content.value
-    dispatch(createAnecdote(content))  
+    dispatch(createAnecdote(content))
   }
 
   return (
