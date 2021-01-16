@@ -1,0 +1,55 @@
+{
+  "notes": [
+    {
+      "content": "custom-hookit aivan mahtavia",
+      "id": 1
+    },
+    {
+      "content": "paras feature ikinä <3",
+      "id": 2
+    },
+    {
+      "content": "wow what a note!",
+      "id": 3
+    },
+    {
+      "content": "neat!",
+      "id": 4
+    },
+    {
+      "content": "cool!",
+      "id": 5
+    },
+    {
+      "content": "lol",
+      "id": 6
+    }
+  ],
+  "persons": [
+    {
+      "name": "mluukkai",
+      "number": "040-5483923",
+      "id": 1
+    },
+    {
+      "name": "thomas",
+      "number": "0124-41124",
+      "id": 2
+    },
+    {
+      "name": "neat-man",
+      "number": "421-142412",
+      "id": 3
+    },
+    {
+      "name": "neat",
+      "number": "241-124412",
+      "id": 4
+    },
+    {
+      "name": "human been",
+      "number": "152-521521",
+      "id": 5
+    }
+  ]
+}
