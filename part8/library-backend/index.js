@@ -1,5 +1,26 @@
+require('dotenv').config();
 const { ApolloServer, gql, UserInputError } = require('apollo-server')
 const { v1: uuid } = require('uuid')
+const mongoose = require('mongoose')
+const Author = require('./models/author')
+const Book = require('./models/book')
+
+const MONGODB_URI = process.env.MONGODB_URI
+
+console.log('connecting to MongoDB')
+mongoose.connect(MONGODB_URI, { 
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false,
+    useCreateIndex: true 
+  }
+  ).then(() => {
+    console.log('connected to MongoDB')
+  })
+  .catch((error) => {
+    console.log('error connection to MongoDB:', error.message)
+})
+
 
 let authors = [
   {
@@ -87,7 +108,7 @@ let books = [
 const typeDefs = gql`
   type Book {
     title: String!
-    author: String!
+    author: Author!
     published: Int!
     id: ID!
     genres: [String!]!
@@ -120,8 +141,8 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
-    bookCount: () => books.length,
-    authorCount: () => authors.length,
+    bookCount: async () => books.length,//await Book.collection.countDocuments(),
+    authorCount: async () => authors.length,//await Author.collection.countDocuments(),
     allBooks: (root, args) => {
       if (args.author && args.genre) {
         return books.filter((book) => book.author === args.author && book.genres.includes(args.genre))
@@ -142,13 +163,11 @@ const resolvers = {
       })
     )
   },
+  Book: {
+    author: (root) => authors.find((author) => author.name === root.author)
+  },
   Mutation: {
-    addBook: (root, args) => {
-      if (books.find((book) => book.title === args.title)) {
-        throw new UserInputError('Title must be unique', {
-          invalidArgs: args.name,
-        })
-      }
+    addBook: async (root, args) => {
       if (!authors.map((author) => author.name).includes(args.author)) {
         authors = authors.concat({ name: args.author, bookCount: 1, id: uuid()})
       } else {
