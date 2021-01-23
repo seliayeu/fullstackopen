@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import Select from 'react-select'
 
-const Authors = ({ show, result, updateBorn }) => {
+const Authors = ({ show, result, updateBorn, token }) => {
   const [born, setBorn] = useState('')
   const [selectedOption, setSelectedOption] = useState(null)
 
@@ -47,22 +47,26 @@ const Authors = ({ show, result, updateBorn }) => {
           )}
         </tbody>
       </table>
-      <h2>set birthyear</h2>
-      <Select
-        defaultValue={selectedOption}
-        onChange={setSelectedOption}
-        options={options}      
-      />
-      <form onSubmit={updateAuthor}>
-        <div>
-          born
-          <input
-            value={born}
-            onChange={({ target }) => setBorn(target.value)}
+      {token !== null &&
+        <>
+          <h2>set birthyear</h2>
+          <Select
+            defaultValue={selectedOption}
+            onChange={setSelectedOption}
+            options={options}      
           />
-        </div>        
-        <button type='submit'>update</button>
-      </form>
+          <form onSubmit={updateAuthor}>
+            <div>
+              born
+              <input
+                value={born}
+                onChange={({ target }) => setBorn(target.value)}
+              />
+            </div>        
+            <button type='submit'>update</button>
+          </form>
+        </>
+      }
     </div>
   )
 }
