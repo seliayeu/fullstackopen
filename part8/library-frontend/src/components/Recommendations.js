@@ -7,10 +7,9 @@ const Recommendations = ({ show, allBooksResult, favoriteResult}) => {
   const [shownBooks, setShownBooks] = useState(undefined)
 
   useEffect(() => {
-    if(!favoriteResult.loading && !allBooksResult.loading) {
+    if(!favoriteResult.loading && !allBooksResult.loading && favoriteResult.data.me !== null) {
       booksFromGenre({ variables: { genre: favoriteResult.data.me.favoriteGenre } })
       console.log(allBooksResult)
-      console.log('pogChampion')
     }
   }, [favoriteResult, allBooksResult]) //eslint-disable-line
 
@@ -25,7 +24,7 @@ const Recommendations = ({ show, allBooksResult, favoriteResult}) => {
     return null
   }
 
-  if (allBooksResult.loading || favoriteResult.loading) {
+  if (allBooksResult.loading || favoriteResult.loading || favoriteResult.data.me === null) {
     return <div>loading...</div>
   }
   return (
@@ -45,7 +44,7 @@ const Recommendations = ({ show, allBooksResult, favoriteResult}) => {
             </th>
           </tr>
           { genreResult.loading || shownBooks === undefined ?
-              <tr>loading...</tr>
+              <tr></tr>
               :
               shownBooks
                 .map((book) =>
