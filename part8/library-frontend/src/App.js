@@ -17,7 +17,7 @@ const App = () => {
 
 
   const [ createBook ] = useMutation(CREATE_BOOK, {
-    refetchQueries: [ { query: ALL_BOOKS }, { query: ALL_AUTHORS } ]
+    refetchQueries: [ { query: ALL_BOOKS }, { query: ALL_AUTHORS }, { query: FAVORITE } ]
   })
 
   const [ updateBorn ] = useMutation(UPDATE_BORN, {

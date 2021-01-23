@@ -1,6 +1,26 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { useLazyQuery } from '@apollo/client';
+import { BOOKS_FROM_GENRE } from '../queries'
 
 const Recommendations = ({ show, allBooksResult, favoriteResult}) => {
+  const [booksFromGenre, genreResult] = useLazyQuery(BOOKS_FROM_GENRE, { fetchPolicy: 'no-cache' } ) 
+  const [shownBooks, setShownBooks] = useState(undefined)
+
+  useEffect(() => {
+    if(!favoriteResult.loading && !allBooksResult.loading) {
+      booksFromGenre({ variables: { genre: favoriteResult.data.me.favoriteGenre } })
+      console.log(allBooksResult)
+      console.log('pogChampion')
+    }
+  }, [favoriteResult, allBooksResult]) //eslint-disable-line
+
+  useEffect(() => {
+    if(genreResult.called && !genreResult.loading) {
+      console.log(genreResult.data.allBooks)
+      setShownBooks(genreResult.data.allBooks)
+    }
+  }, [genreResult])
+
   if (!show) {
     return null
   }
@@ -8,16 +28,11 @@ const Recommendations = ({ show, allBooksResult, favoriteResult}) => {
   if (allBooksResult.loading || favoriteResult.loading) {
     return <div>loading...</div>
   }
-
-  const books = allBooksResult.data.allBooks
-  console.log(books)
-  const favorite = favoriteResult.data.me.favoriteGenre
-
   return (
     <div>
       <h2>recommendations</h2>
       <br></br>
-      <div>books in your favorite genre <b>{favorite}</b></div>
+      <div>books in your favorite genre <b>{favoriteResult.data.me.favoriteGenre}</b></div>
       <table>
         <tbody>
           <tr>
@@ -29,15 +44,18 @@ const Recommendations = ({ show, allBooksResult, favoriteResult}) => {
               published
             </th>
           </tr>
-          {books
-            .filter((book) => book.genres.includes(favorite))
-            .map((book) =>
-              <tr key={book.title}>
-                <td>{book.title}</td>
-                <td>{book.author.name}</td>
-                <td>{book.published}</td>
-              </tr>
-            )}
+          { genreResult.loading || shownBooks === undefined ?
+              <tr>loading...</tr>
+              :
+              shownBooks
+                .map((book) =>
+                  <tr key={book.title}>
+                    <td>{book.title}</td>
+                    <td>{book.author.name}</td>
+                    <td>{book.published}</td>
+                  </tr>
+                )
+          }
         </tbody>
       </table>
     </div>
